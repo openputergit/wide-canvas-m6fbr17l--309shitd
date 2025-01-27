@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Connect Pro</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .map-container {
+            height: calc(100vh - 180px);
+        }
+        .bottom-nav {
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+        .chat-container {
+            height: calc(100vh - 240px);
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-blue-600 text-white p-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold">Campus Connect Pro</h1>
+            <div class="flex items-center space-x-3">
+                <button @click="currentView = 'notifications'" class="p-2">
+                    <i class="bi bi-bell text-xl"></i>
+                </button>
+                <button @click="currentView = 'profile'" class="w-8 h-8 rounded-full bg-white text-blue-600 flex items-center justify-center">
+                    <i class="bi bi-person-fill"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="p-4">
+            <!-- Map View -->
+            <div v-if="currentView === 'map'" class="map-container bg-white rounded-lg shadow-md p-4">
+                <div class="bg-gray-200 h-full rounded-lg flex items-center justify-center">
+                    <p class="text-gray-600">Map View - Loading campus map...</p>
+                </div>
+            </div>
+
+            <!-- Study Hub -->
+            <div v-if="currentView === 'study'" class="space-y-4">
+                <div class="bg-white rounded-lg p-4 shadow-md">
+                    <h2 class="font-semibold text-lg mb-3">Ask a Question</h2>
+                    <textarea v-model="newQuestion" class="w-full p-3 border rounded-lg" placeholder="Type your question here..."></textarea>
+                    <button @click="postQuestion" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg">Post Question</button>
+                </div>
+                
+                <div class="space-y-3">
+                    <div v-for="(q, index) in questions" :key="index" class="bg-white rounded-lg p-4 shadow-md">
+                        <h3 class="font-medium">{{q.question}}</h3>
+                        <p class="text-sm text-gray-600 mt-2">{{q.answers}} answers</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Hub -->
+            <div v-if="currentView === 'chat'" class="chat-container">
+                <div class="bg-white rounded-lg shadow-md h-full flex flex-col">
+                    <div class="p-4 border-b">
+                        <h2 class="font-semibold">Messages</h2>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                        <div v-for="(msg, index) in messages" :key="index" 
+                             :class="['p-3 rounded-lg max-w-[80%]', 
+                                     msg.sent ? 'bg-blue-600 text-white ml-auto' : 'bg-gray-100']">
+                            {{msg.text}}
+                        </div>
+                    </div>
+                    <div class="p-4 border-t">
+                        <div class="flex space-x-2">
+                            <input v-model="newMessage" type="text" class="flex-1 border rounded-lg px-3 py-2" placeholder="Type a message...">
+                            <button @click="sendMessage" class="bg-blue-600 text-white px-4 py-2 rounded-lg">
+                                <i class="bi bi-send"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Language Learning -->
+            <div v-if="currentView === 'language'" class="space-y-4">
+                <div class="bg-white rounded-lg p-4 shadow-md">
+                    <h2 class="font-semibold text-lg mb-3">Language Learning Hub</h2>
+                    <div class="grid grid-cols-2 gap-4">
+                        <button v-for="lang in languages" :key="lang" 
+                                class="p-4 border rounded-lg text-center hover:bg-blue-50">
+                            {{lang}}
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg p-4 shadow-md">
+                    <h3 class="font-medium mb-2">Daily Practice</h3>
+                    <div class="space-y-3">
+                        <button class="w-full text-left p-3 border rounded-lg hover:bg-blue-50">
+                            <i class="bi bi-translate mr-2"></i> Translation Exercise
+                        </button>
+                        <button class="w-full text-left p-3 border rounded-lg hover:bg-blue-50">
+                            <i class="bi bi-chat-dots mr-2"></i> Conversation Practice
+                        </button>
+                        <button class="w-full text-left p-3 border rounded-lg hover:bg-blue-50">
+                            <i class="bi bi-journal-text mr-2"></i> Grammar Quiz
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav fixed bottom-0 left-0 right-0 bg-white border-t px-4 py-2">
+            <div class="flex justify-around">
+                <button @click="currentView = 'map'" 
+                        :class="['p-2 rounded-lg flex flex-col items-center', 
+                                currentView === 'map' ? 'text-blue-600' : 'text-gray-600']">
+                    <i class="bi bi-geo-alt text-xl"></i>
+                    <span class="text-xs">Map</span>
+                </button>
+                <button @click="currentView = 'study'"
+                        :class="['p-2 rounded-lg flex flex-col items-center',
+                                currentView === 'study' ? 'text-blue-600' : 'text-gray-600']">
+                    <i class="bi bi-book text-xl"></i>
+                    <span class="text-xs">Study</span>
+                </button>
+                <button @click="currentView = 'chat'"
+                        :class="['p-2 rounded-lg flex flex-col items-center',
+                                currentView === 'chat' ? 'text-blue-600' : 'text-gray-600']">
+                    <i class="bi bi-chat-dots text-xl"></i>
+                    <span class="text-xs">Chat</span>
+                </button>
+                <button @click="currentView = 'language'"
+                        :class="['p-2 rounded-lg flex flex-col items-center',
+                                currentView === 'language' ? 'text-blue-600' : 'text-gray-600']">
+                    <i class="bi bi-translate text-xl"></i>
+                    <span class="text-xs">Language</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <script>
+        const { createApp } = Vue
+
+        createApp({
+            data() {
+                return {
+                    currentView: 'map',
+                    newQuestion: '',
+                    newMessage: '',
+                    questions: [
+                        { question: "How do I solve this calculus problem?", answers: 3 },
+                        { question: "Looking for study group for Physics!", answers: 5 },
+                        { question: "Tips for tomorrow's presentation?", answers: 2 }
+                    ],
+                    messages: [
+                        { text: "Hey, are you at the library?", sent: false },
+                        { text: "Yes, I'm in the quiet study area", sent: true },
+                        { text: "Great! I'll join you in 10 mins", sent: false }
+                    ],
+                    languages: ['English', 'Spanish', 'French', 'German', 'Chinese', 'Japanese']
+                }
+            },
+            methods: {
+                postQuestion() {
+                    if (this.newQuestion.trim()) {
+                        this.questions.unshift({
+                            question: this.newQuestion,
+                            answers: 0
+                        });
+                        this.newQuestion = '';
+                    }
+                },
+                sendMessage() {
+                    if (this.newMessage.trim()) {
+                        this.messages.push({
+                            text: this.newMessage,
+                            sent: true
+                        });
+                        this.newMessage = '';
+                        
+                        // Simulate response
+                        setTimeout(() => {
+                            this.messages.push({
+                                text: "Message received!",
+                                sent: false
+                            });
+                        }, 1000);
+                    }
+                }
+            }
+        }).mount('#app')
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
